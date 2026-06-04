@@ -1,94 +1,265 @@
-# Next.js Static Site Template
+# 美術学習・クイズサイト 仕様書
 
-Next.js 16 + React 19 + TypeScript を使用した静的サイト生成のテンプレートリポジトリです。GitHub Pages へのデプロイが自動化されています。
+## 概要
 
-## 技術スタック
+国立美術館所蔵作品総合目録検索システムの公開データを利用し、美術作品を学習しながらクイズ形式で知識を身につけられるWebサイトを構築する。
 
-- **Next.js** 16 - App Router / Static Export
-- **React** 19
-- **TypeScript** 5
-- **ESLint** 9 - Flat Config
-- **Prettier** 3
+DBは利用せず、静的JSONファイルと静的サイト生成を前提とする。
 
-## このテンプレートの使い方
+---
 
-1. **「Use this template」ボタン**をクリックして新しいリポジトリを作成
-2. リポジトリをクローン
-   ```bash
-   git clone https://github.com/YOUR_USERNAME/YOUR_REPO.git
-   cd YOUR_REPO
-   ```
-3. 依存関係をインストール
-   ```bash
-   pnpm install
-   ```
-4. 開発サーバーを起動
-   ```bash
-   pnpm dev
-   ```
+# 目的
 
-## セットアップ後にやること
+- 美術作品に親しむ
+- 作者・作品名・年代・様式を学ぶ
+- ゲーム感覚で知識を定着させる
+- パブリックドメイン作品の活用促進
 
-### 1. `next.config.js` の修正
+---
 
-`basePath` をリポジトリ名に変更してください：
+# システム構成
 
-```js
-basePath: process.env.NODE_ENV === "production" ? "/YOUR_REPO_NAME" : "",
+```txt
+国立美術館検索システム
+        ↓
+ データ取得スクリプト
+        ↓
+      JSON生成
+        ↓
+      GitHub
+        ↓
+      Next.js
+ Static Export
+        ↓
+ GitHub Pages
 ```
 
-### 2. `app/layout.tsx` の修正
+DBは利用しない。
 
-メタデータとサイト情報を更新してください：
+---
 
-```tsx
-export const metadata: Metadata = {
-  title: "Your Site Title",
-  description: "Your site description",
+# ID仕様
+
+作品IDは国立美術館検索システムの作品IDをそのまま利用する。
+
+例:
+
+https://search.artmuseums.go.jp/records.php?sakuhin=4760
+
+```json
+{
+  "id": "4760"
 }
 ```
 
-### 3. GitHub Pages の設定
+独自IDは発行しない。
 
-1. リポジトリの **Settings** → **Pages** へ移動
-2. **Source** を「GitHub Actions」に設定
+---
 
-## ディレクトリ構成
+# データ構造
 
+```json
+{
+  "id": "4760",
+  "title": "麗子五歳之像",
+  "artist": "岸田劉生",
+  "artistKana": "きしだりゅうせい",
+  "year": 1918,
+  "style": "写実主義",
+  "country": "日本",
+  "category": "油彩画",
+  "imageUrl": "/images/4760.jpg",
+  "sourceUrl": "https://search.artmuseums.go.jp/records.php?sakuhin=4760",
+  "license": "Public Domain",
+  "description": ""
+}
 ```
-.
-├── app/
-│   ├── layout.tsx      # ルートレイアウト
-│   ├── page.tsx        # ホームページ
-│   └── reset.css       # CSSリセット
-├── .github/
-│   └── workflows/
-│       ├── lint.yml    # リント自動実行
-│       └── deploy.yml  # GitHub Pages 自動デプロイ
-├── next.config.js      # Next.js 設定
-├── tsconfig.json       # TypeScript 設定
-├── eslint.config.mjs   # ESLint 設定
-└── .prettierrc.json    # Prettier 設定
+
+---
+
+# ディレクトリ構成
+
+```txt
+data/
+├── artworks/
+│   ├── 4760.json
+│   ├── 4761.json
+│   └── ...
+│
+└── indexes/
+    ├── all.json
+    ├── artists.json
+    ├── styles.json
+    └── countries.json
+
+public/
+└── images/
+    ├── 4760.jpg
+    ├── 4761.jpg
+    └── ...
 ```
 
-## スクリプト
+---
 
-| コマンド | 説明 |
-|---------|------|
-| `pnpm dev` | 開発サーバーを起動 |
-| `pnpm build` | 静的サイトをビルド（`/out` に出力） |
-| `pnpm lint` | ESLint を実行 |
-| `pnpm format` | Prettier でコードをフォーマット |
-| `pnpm typecheck` | TypeScript の型チェック |
+# 学習機能
 
-## 機能
+## 作品一覧
 
-- **静的サイト生成** - `next build` で `/out` に HTML を出力
-- **自動デプロイ** - main ブランチへの push で GitHub Pages に自動デプロイ
-- **自動リント** - push 時に ESLint / Prettier チェックを実行
-- **依存関係の自動更新** - Dependabot による週次チェック
-- **エディタ設定** - VS Code での自動フォーマット設定済み
+表示項目
 
-## ライセンス
+- 作品画像
+- タイトル
+- 作者
+- 制作年
 
-ISC
+フィルタ
+
+- 作者
+- 時代
+- 国
+- 様式
+- カテゴリ
+
+## 作品詳細
+
+表示項目
+
+- 画像
+- 作者
+- 制作年
+- 解説
+- 出典リンク
+
+出典表記を必須とする。
+
+---
+
+# クイズ機能
+
+## 作者当てクイズ
+
+作品画像を表示し、作者を4択で回答する。
+
+## 作品名当てクイズ
+
+作品画像を表示し、作品名を4択で回答する。
+
+## 制作年代当てクイズ
+
+作品画像を表示し、制作年代を4択で回答する。
+
+年代は10年単位に丸める。
+
+## 美術様式当てクイズ
+
+作品画像を表示し、様式を4択で回答する。
+
+様式情報が存在する作品のみ対象。
+
+## 国・地域当てクイズ
+
+作品画像を表示し、文化圏・国を4択で回答する。
+
+国情報が存在する作品のみ対象。
+
+---
+
+# 出題モード
+
+総合クイズは実装しない。
+
+各クイズは独立ページとする。
+
+```txt
+/quiz/artist
+/quiz/title
+/quiz/year
+/quiz/style
+/quiz/country
+```
+
+---
+
+# 学習履歴
+
+LocalStorageを利用する。
+
+```json
+{
+  "4760": {
+    "correct": 8,
+    "wrong": 3
+  }
+}
+```
+
+---
+
+# 苦手問題モード
+
+間違い率の高い作品を優先出題する。
+
+---
+
+# 今日の1作品
+
+日付から決定的に作品を選択する。
+
+```ts
+hash(YYYY-MM-DD) % 件数
+```
+
+---
+
+# 検索
+
+クライアントサイド検索。
+
+対象
+
+- 作者
+- タイトル
+- 様式
+
+実装候補
+
+- Fuse.js
+
+---
+
+# 技術仕様
+
+## フロントエンド
+
+- TypeScript
+- Next.js App Router
+
+## 配信
+
+```js
+output: "export"
+```
+
+## ホスティング
+
+- GitHub Pages
+- Cloudflare Pages
+- Netlify
+
+---
+
+# MVP
+
+初期リリース対象
+
+- 作品一覧
+- 作品詳細
+- 作者当てクイズ
+- 作品名当てクイズ
+- 制作年代当てクイズ
+- LocalStorage学習履歴
+- 苦手問題復習
+- 静的JSON運用
+- GitHub Pages公開
+
+DB・認証・サーバーは利用しない。
