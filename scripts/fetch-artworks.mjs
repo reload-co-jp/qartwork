@@ -4,8 +4,10 @@
  *
  * Usage:
  *   node scripts/fetch-artworks.mjs [--limit N] [--genres 01,04] [--pages N]
+ *   node scripts/fetch-artworks.mjs --redownload-images
  *
  * Defaults: limit=200, genres=01,02,03,04 (絵画,水彩,素描,版画), pages=5
+ * --redownload-images: re-fetch images for all existing artworks using download.php
  */
 
 import { writeFileSync, mkdirSync, existsSync, readFileSync } from "fs"
@@ -24,6 +26,7 @@ const getArg = (name, def) => {
 const LIMIT = parseInt(getArg("limit", "200"), 10)
 const GENRES = (getArg("genres", "01,02,03,04")).split(",")
 const MAX_PAGES = parseInt(getArg("pages", "5"), 10)
+const REDOWNLOAD_IMAGES = args.includes("--redownload-images")
 
 // --- Utilities ---
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
@@ -130,8 +133,12 @@ function parseDetailPage(html) {
   // Museum
   const museum = (html.match(/<td><b>([^<]+(?:美術館|館)[^<]*)<\/b><\/td>/) || [])[1]?.trim() || ""
 
-  // Mid image
+  // Mid image (fallback only)
   const imageFile = (html.match(/img src = 'jpeg\/mid\/([^']+\.jpg)'/) || [])[1] || null
+
+  // Download button edaban (for full-quality download.php)
+  const edaban = (html.match(/class="dl_button"[^>]*data-edaban="(\d+)"/) ||
+                  html.match(/data-edaban="(\d+)"[^>]*class="dl_button"/) || [])[1] || null
 
   // License
   const licenseRaw = (html.match(/img\/licences\/[^/]+\/([^'.]+)/) || [])[1] || ""
@@ -140,14 +147,14 @@ function parseDetailPage(html) {
   // Public domain: has download button
   const isPublicDomain = html.includes('class="dl_button"')
 
-  return { artist, title, year, category, museum, imageFile, licenseCode, isPublicDomain }
+  return { artist, title, year, category, museum, imageFile, edaban, licenseCode, isPublicDomain }
 }
 
 // --- Image download ---
-async function downloadImage(imageFile, destPath) {
-  if (existsSync(destPath)) return true
+async function downloadImage(url, destPath, { force = false } = {}) {
+  if (!force && existsSync(destPath)) return true
   try {
-    const res = await fetch(`${BASE_URL}/jpeg/mid/${imageFile}`, {
+    const res = await fetch(url, {
       headers: { "User-Agent": "qartwork-data-fetcher/1.0" },
     })
     if (!res.ok) return false
@@ -156,6 +163,50 @@ async function downloadImage(imageFile, destPath) {
   } catch {
     return false
   }
+}
+
+// --- Redownload images for existing artworks ---
+async function redownloadImages(existing, imagesDir) {
+  console.log(`Redownloading images for ${existing.length} existing artworks...`)
+  let done = 0
+  let failed = 0
+
+  for (const artwork of existing) {
+    const imageDest = join(imagesDir, `${artwork.id}.jpg`)
+    try {
+      const html = await fetchText(`${BASE_URL}/records.php?sakuhin=${artwork.id}`)
+      const { edaban, imageFile } = parseDetailPage(html)
+
+      let downloaded = false
+      if (edaban) {
+        downloaded = await downloadImage(
+          `${BASE_URL}/download.php?id=${artwork.id}&edaban=${edaban}`,
+          imageDest,
+          { force: true }
+        )
+      }
+      if (!downloaded && imageFile) {
+        downloaded = await downloadImage(`${BASE_URL}/jpeg/mid/${imageFile}`, imageDest, { force: true })
+      }
+
+      if (downloaded) {
+        done++
+      } else {
+        failed++
+        console.error(`  Failed: ${artwork.id}`)
+      }
+
+      if ((done + failed) % 20 === 0) {
+        console.log(`  ${done + failed}/${existing.length} (${failed} failed)...`)
+      }
+    } catch (e) {
+      failed++
+      console.error(`  Error ${artwork.id}: ${e.message}`)
+    }
+    await sleep(DELAY_MS)
+  }
+
+  console.log(`Done: ${done} updated, ${failed} failed`)
 }
 
 // --- Search genre pages ---
@@ -204,6 +255,11 @@ async function main() {
   const existingIds = new Set(existing.map((a) => a.id))
   console.log(`Existing: ${existingIds.size} artworks`)
 
+  if (REDOWNLOAD_IMAGES) {
+    await redownloadImages(existing, imagesDir)
+    return
+  }
+
   // Build kana map
   const kanaMap = await buildArtistKanaMap()
 
@@ -240,24 +296,25 @@ async function main() {
       const html = await fetchText(`${BASE_URL}/records.php?sakuhin=${candidate.id}`)
       const detail = parseDetailPage(html)
 
-      if (!detail.isPublicDomain || !detail.imageFile) {
+      if (!detail.isPublicDomain || (!detail.edaban && !detail.imageFile)) {
         skipped++
         continue
       }
 
-      // Derive museum code from thumbSrc for mid URL
-      // thumbSrc: "jpeg/thumbs/momat/S0136026.jpg"
-      const imageFile = candidate.thumbSrc.replace("thumbs", "mid")
-
       const imageDest = join(imagesDir, `${candidate.id}.jpg`)
-      const downloaded = await downloadImage(imageFile, imageDest)
+      let downloaded = false
+      if (detail.edaban) {
+        downloaded = await downloadImage(
+          `${BASE_URL}/download.php?id=${candidate.id}&edaban=${detail.edaban}`,
+          imageDest
+        )
+      }
+      if (!downloaded && detail.imageFile) {
+        downloaded = await downloadImage(`${BASE_URL}/jpeg/mid/${detail.imageFile}`, imageDest)
+      }
       if (!downloaded) {
-        // Try detail page image URL as fallback
-        const downloaded2 = await downloadImage(detail.imageFile, imageDest)
-        if (!downloaded2) {
-          skipped++
-          continue
-        }
+        skipped++
+        continue
       }
 
       const year = candidate.year || detail.year
