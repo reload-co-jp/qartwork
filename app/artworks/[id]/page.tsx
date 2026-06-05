@@ -49,12 +49,15 @@ const Page = async ({ params }: Props) => {
           >
             {[
               ["作者", artwork.artist],
-              ["制作年", `${artwork.year}年`],
+              ["作者カナ", artwork.artistKana],
+              ["制作年", artwork.year ? `${artwork.year}年` : ""],
               ["様式", artwork.style],
               ["国・地域", artwork.country],
               ["カテゴリ", artwork.category],
               ["ライセンス", artwork.license],
-            ].map(([label, value]) => (
+            ]
+              .filter(([, value]) => value)
+              .map(([label, value]) => (
               <>
                 <dt key={`dt-${label}`} style={{ color: "#888" }}>
                   {label}
