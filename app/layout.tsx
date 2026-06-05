@@ -17,12 +17,14 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => {
             padding: "0.75rem 1rem",
           }}
         >
-          <nav
+          <div
             style={{
               display: "flex",
-              gap: "1.5rem",
-              alignItems: "center",
+              gap: "1rem",
+              flexWrap: "wrap",
               maxWidth: "960px",
+              alignItems: "center",
+              justifyContent: "space-between",
               margin: "0 auto",
             }}
           >
@@ -37,22 +39,66 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => {
             >
               美術クイズ
             </Link>
-            <Link href="/artworks" style={{ color: "#aaa", textDecoration: "none", fontSize: "0.9rem" }}>
-              作品一覧
-            </Link>
-            <Link href="/quiz/artist" style={{ color: "#aaa", textDecoration: "none", fontSize: "0.9rem" }}>
-              作者当て
-            </Link>
-            <Link href="/quiz/title" style={{ color: "#aaa", textDecoration: "none", fontSize: "0.9rem" }}>
-              作品名当て
-            </Link>
-            <Link href="/quiz/year" style={{ color: "#aaa", textDecoration: "none", fontSize: "0.9rem" }}>
-              年代当て
-            </Link>
-            <Link href="/about" style={{ color: "#aaa", textDecoration: "none", fontSize: "0.9rem", marginLeft: "auto" }}>
-              このサイトについて
-            </Link>
-          </nav>
+            <nav
+              style={{
+                display: "flex",
+                gap: "1.5rem",
+                flexWrap: "wrap",
+              }}
+            >
+              <Link
+                href="/artworks"
+                style={{
+                  color: "#aaa",
+                  textDecoration: "none",
+                  fontSize: "0.9rem",
+                }}
+              >
+                作品一覧
+              </Link>
+              <Link
+                href="/quiz/artist"
+                style={{
+                  color: "#aaa",
+                  textDecoration: "none",
+                  fontSize: "0.9rem",
+                }}
+              >
+                作者当て
+              </Link>
+              <Link
+                href="/quiz/title"
+                style={{
+                  color: "#aaa",
+                  textDecoration: "none",
+                  fontSize: "0.9rem",
+                }}
+              >
+                作品名当て
+              </Link>
+              <Link
+                href="/quiz/year"
+                style={{
+                  color: "#aaa",
+                  textDecoration: "none",
+                  fontSize: "0.9rem",
+                }}
+              >
+                年代当て
+              </Link>
+              <Link
+                href="/about"
+                style={{
+                  color: "#aaa",
+                  textDecoration: "none",
+                  fontSize: "0.9rem",
+                  marginLeft: "auto",
+                }}
+              >
+                このサイトについて
+              </Link>
+            </nav>
+          </div>
         </header>
         <main
           style={{
