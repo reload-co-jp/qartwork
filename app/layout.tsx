@@ -49,6 +49,9 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => {
             <Link href="/quiz/year" style={{ color: "#aaa", textDecoration: "none", fontSize: "0.9rem" }}>
               年代当て
             </Link>
+            <Link href="/about" style={{ color: "#aaa", textDecoration: "none", fontSize: "0.9rem", marginLeft: "auto" }}>
+              このサイトについて
+            </Link>
           </nav>
         </header>
         <main
