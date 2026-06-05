@@ -1,7 +1,7 @@
-import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { getAllArtworks, getArtwork } from "lib/artworks"
+import ImageLightbox from "components/ImageLightbox"
 
 type Props = {
   params: Promise<{ id: string }>
@@ -33,24 +33,7 @@ const Page = async ({ params }: Props) => {
           marginTop: "1rem",
         }}
       >
-        <div
-          style={{
-            flex: "0 0 360px",
-            aspectRatio: "4/3",
-            background: "#1a1a1a",
-            borderRadius: "8px",
-            overflow: "hidden",
-            position: "relative",
-          }}
-        >
-          <Image
-            src={artwork.imageUrl}
-            alt={artwork.title}
-            fill
-            style={{ objectFit: "contain" }}
-            unoptimized
-          />
-        </div>
+        <ImageLightbox src={artwork.imageUrl} alt={artwork.title} />
         <div style={{ flex: "1 1 200px" }}>
           <h1 style={{ fontSize: "1.4rem", marginBottom: "0.5rem" }}>
             {artwork.title}
