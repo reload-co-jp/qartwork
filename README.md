@@ -38,6 +38,17 @@ DBは利用しない。
 
 ---
 
+# データ取得
+
+国立美術館所蔵作品総合目録検索システムの公開API・データを利用。
+
+- API仕様: https://search.artmuseums.go.jp/how_to_use.html
+- 利用規約に従い取得・加工・公開
+
+取得後 `data/artworks/` 以下に静的JSONとして保存。画像は `public/images/` に配置。
+
+---
+
 # ID仕様
 
 作品IDは国立美術館検索システムの作品IDをそのまま利用する。
