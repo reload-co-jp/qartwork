@@ -1,8 +1,8 @@
 import { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "このサイトについて | 美術クイズ",
-  description: "美術クイズサイトの概要・利用データについて",
+  title: "このサイトについて | Qartwork",
+  description: "Qartworkの概要・利用データについて",
 }
 
 const Page = () => {

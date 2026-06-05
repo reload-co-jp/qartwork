@@ -2,7 +2,7 @@ import Link from "next/link"
 import "./reset.css"
 
 export const metadata = {
-  title: "美術クイズ",
+  title: "Qartwork",
   description: "国立美術館作品で学ぶ美術クイズサイト",
 }
 
@@ -37,7 +37,7 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => {
                 fontSize: "1rem",
               }}
             >
-              美術クイズ
+              Qartwork
             </Link>
             <nav
               style={{
